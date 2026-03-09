@@ -4,6 +4,7 @@ FROM node:22-slim
 RUN apt-get update && apt-get install -y \
     curl git vim \
     python3 python3-pip python3-venv \
+    lsof procps iproute2 jq \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install upterm
@@ -22,7 +23,10 @@ RUN npm i -g opencode-ai@latest \
     && npm i -g @google/gemini-cli \
     && npm i -g @qwen-code/qwen-code \
     && npm i -g @charmland/crush \
-    && npm i -g @github/copilot
+    && npm i -g @github/copilot \
+    && npm install -g @mariozechner/pi-coding-agent \
+    && npm cache clean --force \
+    && rm -rf /root/.cache
 
 # Configure opencode with gemini-auth plugin for all users
 COPY config/opencode.json /etc/skel/.config/opencode/opencode.json
@@ -43,4 +47,5 @@ RUN echo "=== Verifying installed tools ===" \
     && qwen --version \
     && crush --version \
     && copilot --version \
+    && pi --version \
     && echo "=== All tools verified ==="

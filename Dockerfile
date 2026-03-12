@@ -37,6 +37,9 @@ RUN mkdir -p /home/node/.config/opencode \
 # Set simple prompt for all terminals
 RUN echo 'PS1="# "' >> /root/.bashrc
 
+# Install Dolt
+RUN curl -L https://github.com/dolthub/dolt/releases/latest/download/install.sh | bash
+
 # Verify all tools are installed
 RUN echo "=== Verifying installed tools ===" \
     && upterm version \
@@ -48,4 +51,5 @@ RUN echo "=== Verifying installed tools ===" \
     && crush --version \
     && copilot --version \
     && pi --version \
+    && dolt version \
     && echo "=== All tools verified ==="

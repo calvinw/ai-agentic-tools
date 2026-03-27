@@ -27,14 +27,6 @@ RUN ARCH=$(uname -m) \
     && mv /tmp/delta/delta /usr/local/bin/delta \
     && rm -rf /tmp/delta
 
-# Install jless (interactive JSON pager)
-RUN ARCH=$(uname -m) \
-    && VER=$(curl -s https://api.github.com/repos/PaulJuliusMartinez/jless/releases/latest | jq -r '.tag_name') \
-    && curl -fL "https://github.com/PaulJuliusMartinez/jless/releases/download/${VER}/jless-${VER}-${ARCH}-unknown-linux-musl.tar.gz" \
-    -o /tmp/jless.tar.gz \
-    && tar -xz -C /usr/local/bin -f /tmp/jless.tar.gz \
-    && rm /tmp/jless.tar.gz
-
 # Install upterm
 COPY scripts/install_upterm.sh /tmp/install_upterm.sh
 RUN chmod +x /tmp/install_upterm.sh && /tmp/install_upterm.sh

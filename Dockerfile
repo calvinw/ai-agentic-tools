@@ -5,7 +5,19 @@ RUN apt-get update && apt-get install -y \
     curl git vim \
     python3 python3-pip python3-venv \
     lsof procps iproute2 jq \
+    glow pspg bat fzf miller \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install visidata (terminal data explorer) via pip
+RUN pip3 install visidata --break-system-packages
+
+# Install delta (better git diffs)
+RUN curl -L https://github.com/dandavison/delta/releases/latest/download/delta-$(uname -m)-unknown-linux-musl.tar.gz \
+    | tar -xz --wildcards --strip-components=1 -C /usr/local/bin '*/delta'
+
+# Install jless (interactive JSON pager)
+RUN curl -L https://github.com/PaulJuliusMartinez/jless/releases/latest/download/jless-$(uname -m)-unknown-linux-musl.tar.gz \
+    | tar -xz -C /usr/local/bin jless
 
 # Install upterm
 COPY scripts/install_upterm.sh /tmp/install_upterm.sh

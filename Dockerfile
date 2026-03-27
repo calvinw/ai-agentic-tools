@@ -19,11 +19,18 @@ RUN apt-get update && apt-get install -y gpg \
 RUN pip3 install visidata --break-system-packages
 
 # Install delta (better git diffs)
-RUN curl -L https://github.com/dandavison/delta/releases/latest/download/delta-$(uname -m)-unknown-linux-musl.tar.gz \
-    | tar -xz --wildcards --strip-components=1 -C /usr/local/bin '*/delta'
+RUN ARCH=$(uname -m) \
+    && VER=$(curl -s https://api.github.com/repos/dandavison/delta/releases/latest | jq -r '.tag_name') \
+    && mkdir /tmp/delta \
+    && curl -L "https://github.com/dandavison/delta/releases/download/${VER}/delta-${VER}-${ARCH}-unknown-linux-musl.tar.gz" \
+    | tar -xz -C /tmp/delta --strip-components=1 \
+    && mv /tmp/delta/delta /usr/local/bin/delta \
+    && rm -rf /tmp/delta
 
 # Install jless (interactive JSON pager)
-RUN curl -L https://github.com/PaulJuliusMartinez/jless/releases/latest/download/jless-$(uname -m)-unknown-linux-musl.tar.gz \
+RUN ARCH=$(uname -m) \
+    && VER=$(curl -s https://api.github.com/repos/PaulJuliusMartinez/jless/releases/latest | jq -r '.tag_name') \
+    && curl -L "https://github.com/PaulJuliusMartinez/jless/releases/download/${VER}/jless-${VER}-${ARCH}-unknown-linux-musl.tar.gz" \
     | tar -xz -C /usr/local/bin jless
 
 # Install upterm

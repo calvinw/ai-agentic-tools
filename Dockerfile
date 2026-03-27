@@ -5,7 +5,14 @@ RUN apt-get update && apt-get install -y \
     curl git vim \
     python3 python3-pip python3-venv \
     lsof procps iproute2 jq \
-    glow pspg bat fzf miller \
+    pspg bat fzf miller \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install glow (markdown renderer) via Charm apt repo
+RUN apt-get update && apt-get install -y gpg \
+    && curl -fsSL https://repo.charm.sh/apt/gpg.key | gpg --dearmor -o /usr/share/keyrings/charm.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" > /etc/apt/sources.list.d/charm.list \
+    && apt-get update && apt-get install -y glow \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install visidata (terminal data explorer) via pip

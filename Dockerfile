@@ -18,15 +18,6 @@ RUN apt-get update && apt-get install -y gpg \
 # Install visidata (terminal data explorer) via pip
 RUN pip3 install visidata --break-system-packages
 
-# Install delta (better git diffs)
-RUN ARCH=$(uname -m) \
-    && VER=$(curl -s https://api.github.com/repos/dandavison/delta/releases/latest | jq -r '.tag_name') \
-    && mkdir /tmp/delta \
-    && curl -L "https://github.com/dandavison/delta/releases/download/${VER}/delta-${VER}-${ARCH}-unknown-linux-musl.tar.gz" \
-    | tar -xz -C /tmp/delta --strip-components=1 \
-    && mv /tmp/delta/delta /usr/local/bin/delta \
-    && rm -rf /tmp/delta
-
 # Install upterm
 COPY scripts/install_upterm.sh /tmp/install_upterm.sh
 RUN chmod +x /tmp/install_upterm.sh && /tmp/install_upterm.sh

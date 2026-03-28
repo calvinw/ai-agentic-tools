@@ -29,7 +29,6 @@ RUN curl -fsSL https://claude.ai/install.sh | bash \
 
 # Install npm-based AI tools
 RUN npm i -g opencode-ai@latest \
-    && npm i -g opencode-gemini-auth \
     && npm i -g @openai/codex \
     && npm i -g @google/gemini-cli \
     && npm i -g @qwen-code/qwen-code \
@@ -38,12 +37,6 @@ RUN npm i -g opencode-ai@latest \
     && npm install -g @mariozechner/pi-coding-agent \
     && npm cache clean --force \
     && rm -rf /root/.cache
-
-# Configure opencode with gemini-auth plugin for all users
-COPY config/opencode.json /etc/skel/.config/opencode/opencode.json
-RUN mkdir -p /home/node/.config/opencode \
-    && cp /etc/skel/.config/opencode/opencode.json /home/node/.config/opencode/opencode.json \
-    && chown -R node:node /home/node/.config
 
 # Set simple prompt for all terminals
 RUN echo 'PS1="# "' >> /root/.bashrc

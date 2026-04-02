@@ -8,7 +8,13 @@ RUN apt-get update && apt-get install -y \
     pspg bat fzf miller \
     bubblewrap ripgrep fd-find tree wget make \
     poppler-utils \
+    locales \
+    && locale-gen en_US.UTF-8 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
 
 # Install glow (markdown renderer) via Charm apt repo
 RUN apt-get update && apt-get install -y gpg \
@@ -38,6 +44,9 @@ RUN QUARTO_VERSION=$(curl -s https://api.github.com/repos/quarto-dev/quarto-cli/
 
 # Install TinyTeX via Quarto
 RUN quarto install tinytex --no-prompt
+
+# Add TinyTeX binaries to PATH
+ENV PATH="/root/.TinyTeX/bin/x86_64-linux:${PATH}"
 
 # Install upterm
 COPY scripts/install_upterm.sh /tmp/install_upterm.sh

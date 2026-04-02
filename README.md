@@ -1,127 +1,254 @@
-This repo is for building a codespace dev container that contains Claude Code, OpenCode, Gemini CLI and Codex installed so students can access these tools in codespaces.
+# AI Agentic Tools for Students
+
+Welcome! This container gives you access to powerful AI coding assistants. Pick the one that fits your workflow, or switch between them as you work.
 
 ---
 
-## How the image is built
+## Quick Start
 
-The `Dockerfile` defines the container. GitHub Actions (`.github/workflows/build-image.yml`) automatically builds and pushes to `ghcr.io/calvinw/ai-course-devcontainer:latest` whenever the `Dockerfile` changes on `main`. It also rebuilds on a weekly schedule.
+Your container comes pre-loaded with:
+- **[Claude Code](https://code.claude.com/docs/en/overview)** — AI agentic coding tool from Anthropic
+- **[OpenCode](https://github.com/opencode-ai/opencode)** — Open source code-focused AI tool  
+- **[Copilot](https://github.com/features/copilot)** — GitHub's AI pair programmer
+- **[Crush](https://github.com/charmbracelet/crush)** — A beautifully themed assistant for command-line work
+- **[Codex](https://github.com/openai/codex)** — OpenAI's agentic tool
 
-The base image is intentionally lean — it includes the AI tools, PDF utilities, and system dependencies. Data science tools (Python packages, Quarto, TinyTeX, Dolt) are available as optional install scripts you run after the container is up.
-
----
-
-## Optional install scripts
-
-Run these inside the container when needed:
-
-```bash
-bash scripts/install-datascience.sh   # Python packages, Quarto, TinyTeX
-bash scripts/install-dolt.sh          # Dolt version-controlled database
-```
+Pick one and start typing commands. You can even use different ones.
 
 ---
 
-## MCPs (Model Context Protocol servers)
+## The Agents and Best Subscriptions
 
-MCP servers extend the AI tools with external data and actions. The shared endpoint list lives in `configs/mcp-urls.conf` — one `name=url` entry per line. Every setup script reads this file, so adding a line here registers the MCP in all tools at once.
+### Claude Code
 
-```
-# configs/mcp-urls.conf
-dolt=https://bus-mgmt-databases.mcp.mathplosion.com/mcp-dolt-database/sse
-```
+- Claude Pro or Max subscription
 
-### Install / uninstall MCPs
+### OpenCode
 
-```bash
-bash scripts/install-mcps.sh    # register all MCPs from mcp-urls.conf in every AI tool
-bash scripts/uninstall-mcps.sh  # remove all those MCP registrations
-```
+- Github Copilot subscription
+- OpenAI Pro subscription
+- OpenRouter API Key (but this is pay per API call)
 
-Both scripts delegate to per-tool setup/teardown scripts (`setup-claude.sh`, `teardown-claude.sh`, etc.) and are idempotent — safe to re-run at any time.
+### Copilot
 
-### Adding a new MCP
+- Github Copilot subscription
 
-1. Append a `name=url` line to `configs/mcp-urls.conf`.
-2. Run `bash scripts/install-mcps.sh`.
+### Crush
 
-All AI tools will pick up the new server.
+- Github Copilot subscription
+
+### Codex
+
+- OpenAI Pro subscription
 
 ---
 
-## Skills
+## Sign up for GitHub Education
 
-Skills are shared slash commands (`/skill-name`) that work across Claude Code, Copilot, Gemini CLI, OpenCode, Crush, and Codex. They are defined as Markdown files under `.skillshare/skills/` and synced to each tool by the [skillshare CLI](https://github.com/runkids/skillshare).
+If you're a student, the single best thing you can do before anything else is sign up for [GitHub Education](https://education.github.com/students). It's free and gives you access to the [GitHub Student Developer Pack](https://education.github.com/pack), which includes a free GitHub Copilot subscription.
 
-### Setup and sync
+**Why this matters for this container:**
 
-```bash
-bash scripts/setup-skills.sh   # create .skillshare/, install the CLI, add a sample skill
-bash scripts/sync-skills.sh    # push all skills in .skillshare/skills/ to every AI tool
-bash scripts/unsync-skills.sh  # remove synced skills from AI tools (keeps .skillshare/)
+- You get **300 free Copilot premium requests per month** — enough to do serious work without paying anything
+- Copilot powers not just the Copilot agent, but also **OpenCode** and **Crush**, which both support GitHub Copilot as a backend
+- In a **GitHub Codespace**, you're already authenticated as your GitHub account — so OpenCode and Copilot start working immediately with no login steps required. This is the smoothest zero-friction path to using AI tools
+
+If you're working in Codespaces, start here. Sign up for GitHub Education, then come back and everything will just work.
+
+---
+
+## Starting the Agents with Elevated Permissions
+
+Each agent has a launcher script in the `permissions/` folder that starts it with the right flags.
+
+### Claude Code
+
+```
+% ./permissions/claude.sh
 ```
 
-Run `setup-skills.sh` once. After that, use `sync-skills.sh` whenever you add or change skills.
+This runs `claude` with two settings: `IS_SANDBOX=1` tells Claude it's running in a sandboxed environment so it won't prompt you for confirmation on every file operation, and `--dangerously-skip-permissions` bypasses the normal permission checks that would otherwise ask you to approve reads, writes, and shell commands one by one. In a dev container this is safe and makes the experience much smoother — without it, Claude stops and asks before doing almost anything.
 
-### Adding a new skill
+### OpenCode
 
-1. Create a directory under `.skillshare/skills/<skill-name>/`.
-2. Add a `SKILL.md` file — see `.skillshare/skills/hello-world/SKILL.md` for the format.
-3. Run `bash scripts/sync-skills.sh`.
+```
+% ./permissions/opencode.sh
+```
 
-The skill is now available as `/<skill-name>` in every configured AI tool.
+This simply runs `opencode` with no extra flags. OpenCode reads its permissions from `.opencode/opencode.json` in the project directory, which is already configured with `read`, `write`, and `execute` all set to `allow`. So the permissions are handled by the config file rather than command-line flags — no extra arguments needed.
 
-### `.skillshare/config.yaml`
+### Copilot
 
-Controls which AI tools receive the synced skills:
+```
+% ./permissions/copilot.sh
+```
+
+This runs `copilot` with the `--allow-all` flag, which tells it to allow all file and shell operations without prompting. Without this flag, Copilot would ask for approval before reading files, making edits, or running commands — `--allow-all` keeps the workflow uninterrupted.
+
+### Crush
+
+```
+% ./permissions/crush.sh
+```
+
+This runs `crush` with the `--yolo` flag — Charmbracelet's way of saying "skip all permission prompts and just do it." It grants Crush full autonomy to read, write, and execute without stopping to ask. Same idea as the other tools, just with a more colorful flag name.
+
+### Codex
+
+```
+% ./permissions/codex.sh
+```
+
+This runs `codex` with no extra flags. Codex handles its own permission model internally and doesn't require command-line flags to operate smoothly in a container environment.
+
+---
+
+## Need More Tools? (Optional)
+
+By default, the container includes AI tools and basic utilities. But you can install the additions below if you need them.
+Or you can install your own tools, we are just in a docker container that is based on node:22-slim — a slim Debian-based image with Node.js 22.
+
+### Data Science Additions
+
+This is the setup for doing data science with Python alongside the AI agents. Once installed, you can ask any of the agents to help you write, debug, and explain data analysis code — the libraries will all be available in the environment.
+
+It installs the following:
+
+- **numpy** — numerical computing and array operations
+- **pandas** — data manipulation and analysis with DataFrames
+- **matplotlib** — plotting and data visualization
+- **seaborn** — statistical visualizations built on matplotlib
+- **requests** — HTTP library for fetching data from APIs and the web
+- **Jupyter** — interactive notebooks for running Python code in the browser
+- **Quarto** — publishing system for creating reports, notebooks, and slides from code
+- **TinyTeX** — lightweight LaTeX distribution used by Quarto to generate PDFs
+
+```
+% scripts/install-datascience.sh
+```
+
+### Dolt Database Executable
+
+Installs Dolt, a version-controlled SQL database:
+
+```
+% scripts/install-dolt.sh
+```
+
+---
+
+## Advanced: Technical Setup & Configuration
+
+### Container Image
+
+This repo builds a Docker image that includes all four AI tools. The `Dockerfile` defines what's installed. GitHub Actions automatically builds and pushes to `ghcr.io/calvinw/ai-course-devcontainer:latest` whenever the `Dockerfile` changes, with weekly rebuilds.
+
+The base image is intentionally lean — data science tools are optional.
+
+### MCPs (Model Context Protocol servers)
+
+MCP servers extend AI tools with access to external data and services. Shared MCP endpoints are listed in `configs/mcp-urls.conf` — one `name=url` entry per line.
+
+#### Installing MCPs
+
+```
+% scripts/install-mcps.sh
+```
+
+Reads every `name=url` entry in `configs/mcp-urls.conf` and registers each MCP server in all configured AI tools — Claude Code, OpenCode, Copilot, Crush, and Codex. It delegates to a per-tool install script for each agent, so each tool gets the MCP added in its own config format. Safe to re-run at any time.
+
+#### Uninstalling MCPs
+
+```
+% scripts/uninstall-mcps.sh
+```
+
+Removes all MCP registrations that were added by `install-mcps.sh`. It runs the corresponding per-tool teardown script for each agent, cleanly removing the MCP entries from every tool's config. Also safe to re-run.
+
+#### Adding a new MCP
+
+1. Append `name=url` to `configs/mcp-urls.conf`:
+   ```
+   dolt=https://bus-mgmt-databases.mcp.mathplosion.com/mcp-dolt-database/sse
+   ```
+2. Run `% scripts/install-mcps.sh`.
+
+All tools pick up the new server automatically.
+
+### Skills (Custom slash commands)
+
+Skills are shared slash commands (`/skill-name`) available across Claude Code, Copilot, OpenCode, Codex, and more. They live in `.skillshare/skills/` and are synced via the [skillshare CLI](https://github.com/runkids/skillshare).
+
+#### Setup
+
+```
+% scripts/setup-skills.sh
+```
+
+Run this once. It creates the `.skillshare/` directory structure, installs the skillshare CLI, and drops in a sample `hello-world` skill so you have something to test with.
+
+#### Syncing Skills
+
+```
+% scripts/sync-skills.sh
+```
+
+Pushes all skills defined in `.skillshare/skills/` out to every AI tool listed in `.skillshare/config.yaml`. Run this whenever you add or change a skill.
+
+#### Unsyncing Skills
+
+```
+% scripts/unsync-skills.sh
+```
+
+Removes all synced skills from the AI tools but leaves the `.skillshare/` directory intact. Run this to clean up, then re-run `sync-skills.sh` to redeploy.
+
+#### Adding a skill
+
+1. Create `.skillshare/skills/<skill-name>/SKILL.md` — see `.skillshare/skills/hello-world/SKILL.md` for format.
+2. Run `% scripts/sync-skills.sh`.
+
+The skill is now available as `/<skill-name>` everywhere.
+
+#### Configure targets
+
+Edit `.skillshare/config.yaml` to choose which tools receive skills:
 
 ```yaml
 targets:
   - claude
   - copilot
-  - gemini
   - opencode
   - crush
   - codex
 ```
 
----
+### Running the Container
 
-## Workflows
+#### VSCode Dev Container (Recommended)
 
-### 1. VSCode devcontainer (remote image)
-
-Normal day-to-day use. VSCode pulls the pre-built image from GitHub Container Registry.
-
-**Prerequisites:** Docker Desktop running, VSCode with the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension.
+**Prerequisites:** Docker Desktop, VSCode with [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension.
 
 ```
-docker pull ghcr.io/calvinw/ai-course-devcontainer:latest
+% docker pull ghcr.io/calvinw/ai-course-devcontainer:latest
 ```
 
-Then in VSCode: `Cmd+Shift+P` → **Dev Containers: Reopen in Container**
+In VSCode: `Cmd+Shift+P` → **Dev Containers: Reopen in Container**
 
-> After a push that changes the `Dockerfile`, wait for the Actions build to finish before pulling.
+#### Local testing (after Dockerfile changes)
 
----
-
-### 2. Local Dockerfile testing (no VSCode)
-
-Use this when you've changed the `Dockerfile` and want to test before pushing.
-
-```bash
-make build-test   # build image locally as ai-container-test
-make run-test     # start container with local repo mounted at /workspace
-make setup        # run post-create.sh inside the container
-make shell        # open a shell
-make stop         # stop and remove the container
+```
+% make build-test   # build locally as ai-container-test
+% make run-test     # start with local repo mounted
+% make setup        # run post-create.sh
+% make shell        # open shell
+% make stop         # stop container
 ```
 
----
+#### Plain Docker
 
-### 3. Plain Docker via Makefile (remote image, no VSCode)
-
-```bash
-make up      # pull remote image, start container, run setup, open shell
-make shell   # re-attach to a running container
-make stop    # stop and remove the container
+```
+% make up      # pull image, start, setup, open shell
+% make shell   # re-attach to running container
+% make stop    # stop container
 ```

@@ -1,4 +1,9 @@
 {
   "$schema": "https://charm.land/crush.json",
-  "mcp": {}
+  "mcp": {
+    "dolt": {
+      "type": "sse",
+      "url": "https://bus-mgmt-databases.mcp.mathplosion.com/mcp-dolt-database/sse"
+    }
+  }
 }

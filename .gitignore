@@ -1,10 +1,4 @@
 build.log
 node_modules/
 .DS_Store
-.claude/settings.json
-.gemini/settings.json
-.codex/
 .codex-tools/
-.opencode/
-.copilot/
-.crush.json

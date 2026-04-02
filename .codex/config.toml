@@ -1,0 +1,12 @@
+approvals_reviewer = "user"
+profile = "codespace"
+
+[profiles.codespace]
+sandbox_mode = "danger-full-access"
+ask_for_approval = "never"
+
+[plugins."gmail@openai-curated"]
+enabled = true
+
+[plugins."github@openai-curated"]
+enabled = true

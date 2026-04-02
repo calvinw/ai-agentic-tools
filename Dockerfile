@@ -6,7 +6,9 @@ RUN apt-get update && apt-get install -y \
     python3 python3-pip python3-venv \
     lsof procps iproute2 jq \
     pspg bat fzf miller \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    bubblewrap \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && ln -sf "$(command -v bwrap)" /usr/bin/bwrap 2>/dev/null || true
 
 # Install glow (markdown renderer) via Charm apt repo
 RUN apt-get update && apt-get install -y gpg \
@@ -35,6 +37,7 @@ RUN npm i -g opencode-ai@latest \
     && npm i -g @charmland/crush \
     && npm i -g @github/copilot \
     && npm install -g @mariozechner/pi-coding-agent \
+    && npm install -g supergateway@3.4.3 \
     && npm cache clean --force \
     && rm -rf /root/.cache
 

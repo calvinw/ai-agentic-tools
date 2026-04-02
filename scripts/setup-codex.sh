@@ -7,53 +7,9 @@ WORKSPACE_DIR="${WORKSPACE_DIR:-$(cd -- "$SCRIPT_DIR/.." && pwd)}"
 MCP_URLS_FILE="$WORKSPACE_DIR/configs/mcp-urls.conf"               # One name=url per line
 WORKSPACE_CODEX_DIR="$WORKSPACE_DIR/.codex"
 CODEX_CONFIG="$WORKSPACE_CODEX_DIR/config.toml"                    # Generated config written here
-CODEX_MCP_BRIDGE_DIR="$WORKSPACE_DIR/.codex-tools/supergateway"    # Local npm install of supergateway
-CODEX_MCP_BRIDGE_BIN="$CODEX_MCP_BRIDGE_DIR/node_modules/.bin/supergateway"
-
-# Helper: run apt-get with sudo if available, directly if already root, or fail gracefully.
-run_apt() {
-  if [ "$(id -u)" -eq 0 ]; then
-    apt-get "$@"
-  elif command -v sudo >/dev/null 2>&1; then
-    sudo apt-get "$@"
-  else
-    return 127
-  fi
-}
-
-# Codex uses Bubblewrap (bwrap) to sandbox its tool execution on Linux.
-# Install it if missing and apt-get is available (Debian/Ubuntu-based Codespaces).
-if ! command -v bwrap >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
-  if run_apt update && run_apt install -y bubblewrap; then
-    echo "Installed bubblewrap for Codex sandboxing."
-  else
-    echo "WARNING: Unable to install bubblewrap automatically. Continuing without it." >&2
-  fi
-fi
+CODEX_MCP_BRIDGE_BIN="$(command -v supergateway || true)"
 
 mkdir -p "$WORKSPACE_CODEX_DIR" ~/.codex
-
-# Install supergateway — its binary path is written into the generated config below.
-# Codex does not natively support SSE-based MCP servers, so supergateway acts as a bridge:
-# it wraps an SSE endpoint and exposes it as a stdio subprocess that Codex can spawn.
-if command -v npm >/dev/null 2>&1; then
-  if [ ! -x "$CODEX_MCP_BRIDGE_BIN" ]; then
-    mkdir -p "$CODEX_MCP_BRIDGE_DIR"
-    if [ ! -f "$CODEX_MCP_BRIDGE_DIR/package.json" ]; then
-      cat > "$CODEX_MCP_BRIDGE_DIR/package.json" <<'EOF'
-{
-  "name": "codex-mcp-bridge",
-  "private": true,
-  "version": "1.0.0",
-  "dependencies": {
-    "supergateway": "3.4.3"
-  }
-}
-EOF
-    fi
-    npm install --prefix "$CODEX_MCP_BRIDGE_DIR" >/dev/null 2>&1
-  fi
-fi
 
 # Remove any existing symlink or file at the target paths before generating.
 rm -f "$CODEX_CONFIG" ~/.codex/config.toml

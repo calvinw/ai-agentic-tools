@@ -27,27 +27,6 @@ RUN apt-get update && apt-get install -y gpg \
     && apt-get update && apt-get install -y gh \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install visidata (terminal data explorer) via pip
-RUN pip3 install visidata --break-system-packages
-
-# Install Python data science packages
-RUN pip3 install jupyter numpy pandas matplotlib seaborn requests --break-system-packages
-
-# Install Quarto
-RUN QUARTO_VERSION=$(curl -s https://api.github.com/repos/quarto-dev/quarto-cli/releases/latest | jq -r '.tag_name' | sed 's/^v//') \
-    && ARCH=$(dpkg --print-architecture) \
-    && curl -LO "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-${ARCH}.deb" \
-    && dpkg -i "quarto-${QUARTO_VERSION}-linux-${ARCH}.deb" \
-    && rm "quarto-${QUARTO_VERSION}-linux-${ARCH}.deb"
-
-# Install TinyTeX via Quarto
-RUN quarto install tinytex --no-prompt
-
-# Add TinyTeX binaries to PATH
-RUN ARCH=$(uname -m) && echo "export PATH=\"/root/.TinyTeX/bin/${ARCH}-linux:\$PATH\"" >> /root/.bashrc \
-    && ln -sf /root/.TinyTeX/bin/$(uname -m)-linux /root/.TinyTeX/bin/current
-ENV PATH="/root/.TinyTeX/bin/current:${PATH}"
-
 # Install upterm
 COPY scripts/install_upterm.sh /tmp/install_upterm.sh
 RUN chmod +x /tmp/install_upterm.sh && /tmp/install_upterm.sh
@@ -72,8 +51,7 @@ RUN npm i -g opencode-ai@latest \
 # Set simple prompt for all terminals
 RUN echo 'PS1="# "' >> /root/.bashrc
 
-# Install Dolt
-RUN curl -L https://github.com/dolthub/dolt/releases/latest/download/install.sh | bash
+WORKDIR /workspace
 
 # Verify all tools are installed
 RUN echo "=== Verifying installed tools ===" \
@@ -86,6 +64,4 @@ RUN echo "=== Verifying installed tools ===" \
     && crush --version \
     && copilot --version \
     && pi --version \
-    && dolt version \
-    && quarto check \
     && echo "=== All tools verified ==="

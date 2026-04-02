@@ -21,6 +21,71 @@ bash scripts/install-dolt.sh          # Dolt version-controlled database
 
 ---
 
+## MCPs (Model Context Protocol servers)
+
+MCP servers extend the AI tools with external data and actions. The shared endpoint list lives in `configs/mcp-urls.conf` — one `name=url` entry per line. Every setup script reads this file, so adding a line here registers the MCP in all tools at once.
+
+```
+# configs/mcp-urls.conf
+dolt=https://bus-mgmt-databases.mcp.mathplosion.com/mcp-dolt-database/sse
+```
+
+### Install / uninstall MCPs
+
+```bash
+bash scripts/install-mcps.sh    # register all MCPs from mcp-urls.conf in every AI tool
+bash scripts/uninstall-mcps.sh  # remove all those MCP registrations
+```
+
+Both scripts delegate to per-tool setup/teardown scripts (`setup-claude.sh`, `teardown-claude.sh`, etc.) and are idempotent — safe to re-run at any time.
+
+### Adding a new MCP
+
+1. Append a `name=url` line to `configs/mcp-urls.conf`.
+2. Run `bash scripts/install-mcps.sh`.
+
+All AI tools will pick up the new server.
+
+---
+
+## Skills
+
+Skills are shared slash commands (`/skill-name`) that work across Claude Code, Copilot, Gemini CLI, OpenCode, Crush, and Codex. They are defined as Markdown files under `.skillshare/skills/` and synced to each tool by the [skillshare CLI](https://github.com/runkids/skillshare).
+
+### Setup and sync
+
+```bash
+bash scripts/setup-skills.sh   # create .skillshare/, install the CLI, add a sample skill
+bash scripts/sync-skills.sh    # push all skills in .skillshare/skills/ to every AI tool
+bash scripts/unsync-skills.sh  # remove synced skills from AI tools (keeps .skillshare/)
+```
+
+Run `setup-skills.sh` once. After that, use `sync-skills.sh` whenever you add or change skills.
+
+### Adding a new skill
+
+1. Create a directory under `.skillshare/skills/<skill-name>/`.
+2. Add a `SKILL.md` file — see `.skillshare/skills/hello-world/SKILL.md` for the format.
+3. Run `bash scripts/sync-skills.sh`.
+
+The skill is now available as `/<skill-name>` in every configured AI tool.
+
+### `.skillshare/config.yaml`
+
+Controls which AI tools receive the synced skills:
+
+```yaml
+targets:
+  - claude
+  - copilot
+  - gemini
+  - opencode
+  - crush
+  - codex
+```
+
+---
+
 ## Workflows
 
 ### 1. VSCode devcontainer (remote image)

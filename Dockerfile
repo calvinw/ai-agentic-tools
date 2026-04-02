@@ -9,12 +9,9 @@ RUN apt-get update && apt-get install -y \
     bubblewrap ripgrep fd-find tree wget make \
     poppler-utils \
     locales \
-    && locale-gen en_US.UTF-8 \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-ENV LANG=en_US.UTF-8 \
-    LANGUAGE=en_US:en \
-    LC_ALL=en_US.UTF-8
 
 # Install glow (markdown renderer) via Charm apt repo
 RUN apt-get update && apt-get install -y gpg \
@@ -38,15 +35,18 @@ RUN pip3 install jupyter numpy pandas matplotlib seaborn requests --break-system
 
 # Install Quarto
 RUN QUARTO_VERSION=$(curl -s https://api.github.com/repos/quarto-dev/quarto-cli/releases/latest | jq -r '.tag_name' | sed 's/^v//') \
-    && curl -LO "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.deb" \
-    && dpkg -i "quarto-${QUARTO_VERSION}-linux-amd64.deb" \
-    && rm "quarto-${QUARTO_VERSION}-linux-amd64.deb"
+    && ARCH=$(dpkg --print-architecture) \
+    && curl -LO "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-${ARCH}.deb" \
+    && dpkg -i "quarto-${QUARTO_VERSION}-linux-${ARCH}.deb" \
+    && rm "quarto-${QUARTO_VERSION}-linux-${ARCH}.deb"
 
 # Install TinyTeX via Quarto
 RUN quarto install tinytex --no-prompt
 
 # Add TinyTeX binaries to PATH
-ENV PATH="/root/.TinyTeX/bin/x86_64-linux:${PATH}"
+RUN ARCH=$(uname -m) && echo "export PATH=\"/root/.TinyTeX/bin/${ARCH}-linux:\$PATH\"" >> /root/.bashrc \
+    && ln -sf /root/.TinyTeX/bin/$(uname -m)-linux /root/.TinyTeX/bin/current
+ENV PATH="/root/.TinyTeX/bin/current:${PATH}"
 
 # Install upterm
 COPY scripts/install_upterm.sh /tmp/install_upterm.sh

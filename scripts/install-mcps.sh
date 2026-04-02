@@ -23,44 +23,12 @@ if command -v claude >/dev/null 2>&1; then
   for entry in "${entries[@]}"; do
     name="${entry%%=*}"
     url="${entry#*=}"
-    claude mcp add -s user "$name" --transport sse "$url" 2>/dev/null || true
+    claude mcp add -s user "$name" --transport sse "$url"
   done
   echo "Claude MCPs registered via CLI."
 fi
 
-# --- Copilot: edit .copilot/mcp-config.json ---
-python3 - "$WORKSPACE_DIR/.copilot/mcp-config.json" "${entries[@]}" <<'EOF'
-import json, sys
-path = sys.argv[1]
-with open(path) as f:
-    config = json.load(f)
-servers = config.setdefault("mcpServers", {})
-for entry in sys.argv[2:]:
-    name, _, url = entry.partition("=")
-    servers[name] = {"type": "sse", "url": url}
-with open(path, "w") as f:
-    json.dump(config, f, indent=2)
-    f.write("\n")
-EOF
-echo "Copilot MCPs added."
-
-# --- Gemini: edit .gemini/settings.json ---
-python3 - "$WORKSPACE_DIR/.gemini/settings.json" "${entries[@]}" <<'EOF'
-import json, sys
-path = sys.argv[1]
-with open(path) as f:
-    config = json.load(f)
-servers = config.setdefault("mcpServers", {})
-for entry in sys.argv[2:]:
-    name, _, url = entry.partition("=")
-    servers[name] = {"type": "sse", "url": url}
-with open(path, "w") as f:
-    json.dump(config, f, indent=2)
-    f.write("\n")
-EOF
-echo "Gemini MCPs added."
-
-# --- OpenCode: edit .opencode/opencode.json ---
+# --- OpenCode: edit project-level .opencode/opencode.json ---
 python3 - "$WORKSPACE_DIR/.opencode/opencode.json" "${entries[@]}" <<'EOF'
 import json, sys
 path = sys.argv[1]
@@ -76,8 +44,40 @@ with open(path, "w") as f:
 EOF
 echo "OpenCode MCPs added."
 
-# --- Crush: edit .crush/crush.json ---
-python3 - "$WORKSPACE_DIR/.crush/crush.json" "${entries[@]}" <<'EOF'
+# --- Copilot: edit project-level .mcp.json ---
+python3 - "$WORKSPACE_DIR/.mcp.json" "${entries[@]}" <<'EOF'
+import json, sys
+path = sys.argv[1]
+with open(path) as f:
+    config = json.load(f)
+servers = config.setdefault("mcpServers", {})
+for entry in sys.argv[2:]:
+    name, _, url = entry.partition("=")
+    servers[name] = {"type": "sse", "url": url}
+with open(path, "w") as f:
+    json.dump(config, f, indent=2)
+    f.write("\n")
+EOF
+echo "Copilot MCPs added."
+
+# --- Gemini: edit project-level .gemini/settings.json ---
+python3 - "$WORKSPACE_DIR/.gemini/settings.json" "${entries[@]}" <<'EOF'
+import json, sys
+path = sys.argv[1]
+with open(path) as f:
+    config = json.load(f)
+servers = config.setdefault("mcpServers", {})
+for entry in sys.argv[2:]:
+    name, _, url = entry.partition("=")
+    servers[name] = {"type": "sse", "url": url}
+with open(path, "w") as f:
+    json.dump(config, f, indent=2)
+    f.write("\n")
+EOF
+echo "Gemini MCPs added."
+
+# --- Crush: edit project-level .crush.json ---
+python3 - "$WORKSPACE_DIR/.crush.json" "${entries[@]}" <<'EOF'
 import json, sys
 path = sys.argv[1]
 with open(path) as f:
@@ -92,30 +92,25 @@ with open(path, "w") as f:
 EOF
 echo "Crush MCPs added."
 
-# --- Codex: edit .codex/config.toml ---
-# Uses supergateway bridge if available (Codex requires stdio, not SSE directly).
+# --- Codex: edit project-level .codex/config.toml ---
 CODEX_MCP_BRIDGE_BIN="$(command -v supergateway || true)"
 if [ -n "$CODEX_MCP_BRIDGE_BIN" ]; then
   python3 - "$WORKSPACE_DIR/.codex/config.toml" "$CODEX_MCP_BRIDGE_BIN" "${entries[@]}" <<'EOF'
-import sys, re
-
+import sys
 path = sys.argv[1]
 bridge = sys.argv[2]
 entries = sys.argv[3:]
-
 with open(path) as f:
     content = f.read()
-
 for entry in entries:
     name, _, url = entry.partition("=")
     section = f'[mcp_servers.{name}]'
     if section not in content:
         content = content.rstrip("\n") + f'\n\n[mcp_servers.{name}]\ncommand = "{bridge}"\nargs = ["--sse", "{url}", "--logLevel", "none"]\n'
-
 with open(path, "w") as f:
     f.write(content)
 EOF
   echo "Codex MCPs added."
 else
-  echo "Codex MCPs skipped (supergateway not found — install it to enable Codex MCP support)."
+  echo "Codex MCPs skipped (supergateway not found)."
 fi

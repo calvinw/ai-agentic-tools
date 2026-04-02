@@ -1,4 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "autoshare": false,
+  "permission": {
+    "read": "allow",
+    "write": "allow",
+    "execute": "allow"
+  },
   "mcp": {}
 }

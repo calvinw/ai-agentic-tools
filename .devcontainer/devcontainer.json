@@ -11,7 +11,9 @@
       "openFiles": []
     },
     "vscode": {
-      "extensions": [],
+      "extensions": [
+        "tomoki1207.pdf"
+      ],
       "settings": {
         "extensions.allowed": {
           "anthropic.claude-code": false,

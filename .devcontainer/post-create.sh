@@ -7,3 +7,4 @@ WORKSPACE_DIR="${WORKSPACE_DIR:-$(cd -- "$SCRIPT_DIR/.." && pwd)}"
 cd "$WORKSPACE_DIR"
 
 bash "$WORKSPACE_DIR/scripts/setup-env.sh"
+bash "$WORKSPACE_DIR/scripts/install-mcps.sh" || true

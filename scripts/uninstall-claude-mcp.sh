@@ -3,22 +3,18 @@ set -e
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_DIR="${WORKSPACE_DIR:-$(cd -- "$SCRIPT_DIR/.." && pwd)}"
-MCP_URLS_FILE="$WORKSPACE_DIR/configs/mcp-urls.conf"
+MCP_CONF_FILE="$WORKSPACE_DIR/configs/mcp-servers.conf"
 
-names=()
-while IFS='=' read -r name url; do
-  [ -z "$name" ] && continue
-  case "$name" in \#*) continue ;; esac
-  names+=("$name")
-done < "$MCP_URLS_FILE"
+. "$SCRIPT_DIR/lib-mcp-parse.sh"
+parse_mcp_names_only "$MCP_CONF_FILE"
 
-if [ ${#names[@]} -eq 0 ]; then
-  echo "No MCPs configured in $MCP_URLS_FILE"
+if [ ${#MCP_NAMES[@]} -eq 0 ]; then
+  echo "No MCPs configured in $MCP_CONF_FILE"
   exit 0
 fi
 
 if command -v claude >/dev/null 2>&1; then
-  for name in "${names[@]}"; do
+  for name in "${MCP_NAMES[@]}"; do
     claude mcp remove -s user "$name" 2>/dev/null || true
   done
   echo "Claude MCPs removed via CLI."

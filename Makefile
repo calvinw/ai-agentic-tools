@@ -15,7 +15,7 @@ run:
 		--name $(CONTAINER) \
 		-e CLAUDE_CODE_DISABLE_VSCODE_EXTENSION=1 \
 		-e IS_SANDBOX=1 \
-		-v "$(PWD)":$(WORKSPACE) \
+-v "$(PWD)":$(WORKSPACE) \
 		-w $(WORKSPACE) \
 		$(IMAGE):$(TAG) \
 		sleep infinity

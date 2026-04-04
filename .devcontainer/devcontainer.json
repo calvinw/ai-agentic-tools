@@ -6,6 +6,12 @@
     "CLAUDE_CODE_DISABLE_VSCODE_EXTENSION": "1",
     "IS_SANDBOX": "1"
   },
+  "secrets": {
+    "STITCH_API_KEY": {
+      "description": "API key for the Stitch MCP server. Generate at https://stitch.withgoogle.com (Settings → API Keys).",
+      "documentationUrl": "https://stitch.withgoogle.com/docs/mcp/setup"
+    }
+  },
   "customizations": {
     "codespaces": {
       "openFiles": []

@@ -137,6 +137,47 @@ Installs Dolt, a version-controlled SQL database:
 
 ---
 
+## Using This Repo in Your Own Project
+
+You can pull the devcontainer, MCP configs, permissions scripts, and all setup scripts into any repo with a single bootstrap command.
+
+### Bootstrap a new repo
+
+In your repo, run:
+
+```bash
+mkdir -p scripts && curl -fsSL https://raw.githubusercontent.com/calvinw/ai-agentic-tools/main/scripts/sync-from-upstream.sh \
+  -o scripts/sync-from-upstream.sh && chmod +x scripts/sync-from-upstream.sh
+bash scripts/sync-from-upstream.sh
+```
+
+This fetches `sync-from-upstream.sh` from this repo and immediately runs it, pulling down:
+
+- `.devcontainer/` — devcontainer config and post-create setup
+- `configs/mcp-servers.conf` — shared MCP endpoint list
+- `.mcp.json`, `.claude/`, `.crush.json`, `.codex/`, `.opencode/`, `.gemini/` — per-tool configs
+- `Makefile` — Docker workflow targets
+- `permissions/` — launcher scripts for each tool
+- `scripts/` — all install, uninstall, and setup scripts
+
+Then commit:
+
+```bash
+git add . && git commit -m "Add agentic tools from ai-agentic-tools" && git push
+```
+
+### Keeping in sync with upstream
+
+When this repo is updated, pull the latest into your project by running:
+
+```bash
+bash scripts/sync-from-upstream.sh
+git diff        # review changes
+git add . && git commit -m "Sync agentic tools from upstream" && git push
+```
+
+---
+
 ## Advanced: Technical Setup & Configuration
 
 ### Container Image

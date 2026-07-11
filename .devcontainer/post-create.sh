@@ -5,6 +5,7 @@ WORKSPACE_DIR="${WORKSPACE_DIR:-$PWD}"
 
 cd "$WORKSPACE_DIR"
 
+bash .devcontainer/setup-codex.sh
 setup-env.sh
 install-mcps.sh || true
 
